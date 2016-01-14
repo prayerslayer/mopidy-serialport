@@ -24,9 +24,12 @@ class Extension(ext.Extension):
 
     def get_config_schema(self):
         schema = super(Extension, self).get_config_schema()
+        schema['port'] = config.String()
+        schema['baud'] = config.Integer()
+        schema['channels'] = config.List()
         return schema
 
     def setup(self, registry):
-        from .frontend import FoobarFrontend
-        registry.add('frontend', FoobarFrontend)
+        from .frontend import SerialPortFrontend
+        registry.add('frontend', SerialPortFrontend)
 
