@@ -16,10 +16,11 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.channel = 1
 
     def on_start(self):
-        self.connect();
+        self.connect()
+        self.loop()
 
     def on_stop(self):
-        self.disconnect();
+        self.disconnect()
 
     def connect(self):
 	try:
