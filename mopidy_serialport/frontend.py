@@ -5,27 +5,31 @@ from mopidy import core
 
 logger = logging.getLogger(__name__)
 
-class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener)
+class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
     
     def __init__(self, config, core):
         super(SerialPortFrontend, self).__init__()
-        self.config = config
+        self.config = config['serialport']
         self.core = core
         self.running = False
         self.volume = core.mixer.get_volume()
         self.channel = 1
 
     def on_start(self):
-        self.connect();
+        self.connect()
+        self.loop()
 
     def on_stop(self):
-        self.disconnect();
+        self.disconnect()
 
     def connect(self):
-        self.arduino = serial.Serial(self.config['port'], self.config['baud'], 1)
-        # signal we're ready
-        self.arduino.write('OK\n\r')
-        self.running = True
+	try:
+            self.arduino = serial.Serial(self.config['port'], self.config['baud'], timeout=1)
+            # signal we're ready
+            self.arduino.write('OK\n\r')
+            self.running = True
+	except:
+	    logger.error('Could not connect to serial port')
 
     def disconnect(self):
         self.arduino.close()
