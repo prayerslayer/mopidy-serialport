@@ -23,13 +23,13 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.disconnect()
 
     def connect(self):
-	try:
+        try:
             self.arduino = serial.Serial(self.config['port'], self.config['baud'], timeout=1)
             # signal we're ready
             self.arduino.write('OK\n\r')
             self.running = True
-	except:
-	    logger.error('Could not connect to serial port')
+        except:
+            logger.error('Could not connect to serial port')
 
     def disconnect(self):
         self.arduino.close()
