@@ -15,7 +15,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.volume = core.mixer.get_volume()
         self.channel = 1
         logger.info('Available channels:')
-        for channel in self.config['channels']
+        for channel in self.config['channels']:
             logger.info(channel)
 
     def on_start(self):
@@ -55,7 +55,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
             if channel != self.channel:
                 # get channel uri from config
                 channel_uri = self.config['channels'][channel]
-                logger.info('[serialport] Channel URI: ' channel_uri)
+                logger.info('[serialport] Channel URI: ' + channel_uri)
                 # stop playback, clear tracklist, load new tracks, play
                 self.core.playback.stop()
                 logger.info('[serialport] stopped playback')
