@@ -5,6 +5,10 @@ from mopidy import core
 
 logger = logging.getLogger(__name__)
 
+MAX_VOLUME = 100
+VOLUME_STEP = 5
+MIN_VOLUME = 0
+
 class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
     
     def __init__(self, config, core):
@@ -13,7 +17,8 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.core = core
         self.running = False
         self.volume = core.mixer.get_volume()
-        self.channel = 1
+        self.channel = 0
+        self.channels = self.config['channels']
         logger.info('Available channels:')
         for channel in self.config['channels']:
             logger.info(channel)
@@ -41,6 +46,11 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.running = False
 
     def set_volume(self, volume):
+        # normalize
+        if volume > 0:
+            volume = max(volume, MAX_VOLUME)
+        if volume < 0:
+            volume = min(volume, MIN_VOLUME)
         try:
             if volume != self.volume:
                 logger.debug('[serialport] Setting volume to ' + str(volume))
@@ -50,7 +60,8 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
             logger.error('[serialport] Failed to set volume to ' + str(volume))
             pass
 
-    def set_channel(self, channel):
+    def set_channel(self, direction):
+        channel = (self.channel + direction) % len(self.channels)
         try:
             if channel != self.channel:
                 # get channel uri from config
@@ -71,10 +82,14 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
 
     def handle_message(self, message):
         try:
-            if message[0] == 'V':
-                self.set_volume(int(message[1:]))
-            if message[0] == 'C':
-                self.set_channel(int(message[1:]))
+            if message == 'V+' and self.volume < MAX_VOLUME:
+                self.set_volume(VOLUME_STEP)
+            if message == 'V-' and self.volume > MIN_VOLUME:
+                self.set_volume(VOLUME_STEP * -1)
+            if message == 'C+':
+                self.set_channel(1)
+            if message == 'C-':
+                self.set_channel(-1)
         except BaseException as e:
             logger.error('[serialport] Could not handle serial message "' + message + '"')
             logger.error(e)
