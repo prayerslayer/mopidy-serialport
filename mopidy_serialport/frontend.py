@@ -16,10 +16,12 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.channel = 1
 
     def on_start(self):
+        logger.info('[serialport] on start')
         self.connect()
         self.loop()
 
     def on_stop(self):
+	logger.info('[serialport] on stop')
         self.disconnect()
 
     def connect(self):
@@ -29,7 +31,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
             self.arduino.write('OK\n\r')
             self.running = True
         except:
-            logger.error('Could not connect to serial port')
+            logger.error('[serialport] Could not connect to serial port ' + self.config['port'])
 
     def disconnect(self):
         self.arduino.close()
@@ -38,11 +40,11 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
     def set_volume(self, volume):
         try:
             if volume != self.volume:
+                logger.debug('[serialport] Setting volume to ' + str(volume))
                 self.core.mixer.set_volume(volume)
                 self.volume = volume
-                logger.debug('Volume: ' + volume)
         except:
-            logger.error('Failed to set volume to ' + volume)
+            logger.error('[serialport] Failed to set volume to ' + str(volume))
             pass
 
     def set_channel(self, channel):
@@ -56,7 +58,6 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
                 self.core.tracklist.add(uris=[channel_uri])
                 self.core.playback.play()
                 self.channel = channel
-                logger.debug('Channel: ' + channel)
         except:
             logger.error('Failed to set channel to ' + channel)
             pass
@@ -67,8 +68,9 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
                 self.set_volume(int(message[1:]))
             if message[0] == 'C':
                 self.set_channel(int(message[1:]))
-        except:
-            logger.error('Could not handle serial message "' + message + '"')
+        except BaseException as e:
+            logger.error('[serialport] Could not handle serial message "' + message + '"')
+            logger.error(e)
             pass
 
     def loop(self):
@@ -76,4 +78,5 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         while self.running:
             message = self.arduino.readline()
             if len(message) > 0:
-                self.handle_message(message)
+                # strip newline
+                self.handle_message(message.rstrip())
