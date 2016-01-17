@@ -29,7 +29,14 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
 
     def connect(self):
         try:
-            self.arduino = serial.Serial(self.config['port'], self.config['baud'], timeout=1)
+            self.arduino = serial.Serial(
+                port=self.config['port'],
+                baudrate=self.config['baud'],
+                timeout=1,
+                parity=serial.PARITY_NONE,
+                stopbits=serial.STOPBITS_TWO,
+                bytesize=serial.EIGHTBITS
+            )
             # signal we're ready
             self.arduino.write('OK\n\r')
             self.arduino.flush()
