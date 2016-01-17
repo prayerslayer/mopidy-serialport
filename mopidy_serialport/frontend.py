@@ -12,20 +12,14 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.config = config['serialport']
         self.core = core
         self.running = False
-        self.channel = 0
         self.channels = self.config['channels']
-        logger.info('Available channels:')
-        for channel in self.config['channels']:
-            logger.info(channel)
 
     def on_start(self):
-        logger.info('[serialport] on start')
         self.connect()
-        self.set_channel(1)
+        self.set_channel(0)
         self.loop()
 
     def on_stop(self):
-	logger.info('[serialport] on stop')
         self.disconnect()
 
     def connect(self):
@@ -55,38 +49,32 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
             logger.error('[serialport] Failed to set volume to ' + str(volume))
             pass
 
-    def set_channel(self, direction):
-        channel = (self.channel + direction) % len(self.channels)
+    def set_channel(self, channel):
         try:
-            if channel != self.channel:
-                # get channel uri from config
-                channel_uri = self.channels[channel]
-                logger.info('[serialport] Switching to channel: ' + channel_uri)
+            # get channel uri from config
+            channel_uri = self.channels[channel]
+            logger.info('[serialport] Switching to channel: ' + channel_uri)
 
-                refs = self.core.library.browse(channel_uri).get()
-                tl_tracks = self.core.tracklist.add(at_position=0, uris=[ref.uri for ref in refs]).get()
-                self.core.playback.play(tl_track=tl_tracks[0])
-                self.channel = channel
+            refs = self.core.library.browse(channel_uri).get()
+            tl_tracks = self.core.tracklist.add(at_position=0, uris=[ref.uri for ref in refs]).get()
+            self.core.playback.play(tl_track=tl_tracks[0])
         except BaseException as e:
             logger.error('Failed to set channel to ' + str(channel))
             logger.error(e)
             pass
 
     def handle_message(self, message):
-        logger.info('[serialport] incoming message "' + message + '"')
+        logger.debug('[serialport] incoming message "' + message + '"')
         volume_step = self.config['volume_step']
         try:
             if message == 'V+':
                 self.set_volume(volume_step)
             if message == 'V-':
                 self.set_volume(volume_step * -1)
-            if message == 'C+':
-                self.set_channel(1)
-            if message == 'C-':
-                self.set_channel(-1)
+            if message[0] == 'C':
+                self.set_channel(int(message[1:]))
         except BaseException as e:
-            logger.error('[serialport] Could not handle serial message "' + message + '"')
-            logger.error(e)
+            logger.error('[serialport] Could not handle serial message "%s": %s', message, e)
             pass
 
     def loop(self):
