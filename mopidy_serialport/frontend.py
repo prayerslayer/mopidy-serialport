@@ -6,10 +6,6 @@ from multiprocessing import Process
 
 logger = logging.getLogger(__name__)
 
-MAX_VOLUME = 100
-VOLUME_STEP = 2
-MIN_VOLUME = 0
-
 class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
     
     def __init__(self, config, core):
@@ -32,7 +28,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.subprocess.start()
 
     def on_stop(self):
-        logger.info('[serialport] on stop')
+	logger.info('[serialport] on stop')
         self.disconnect()
 
     def connect(self):
@@ -53,9 +49,9 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         # normalize
         volume = self.core.mixer.get_volume().get() + step
         if step > 0:
-            volume = min(volume, MAX_VOLUME)
+            volume = min(volume, self.config['max_volume'])
         if step < 0:
-            volume = max(volume, MIN_VOLUME)
+            volume = max(volume, self.config['min_volume'])
         try:
             logger.info('[serialport] Setting volume to ' + str(volume))
             self.core.mixer.set_volume(volume)
@@ -82,11 +78,12 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
 
     def handle_message(self, message):
         logger.info('[serialport] incoming message "' + message + '"')
+        volume_step = self.config['volume_step']
         try:
             if message == 'V+':
-                self.set_volume(VOLUME_STEP)
+                self.set_volume(volume_step)
             if message == 'V-':
-                self.set_volume(VOLUME_STEP * -1)
+                self.set_volume(volume_step * -1)
             if message == 'C+':
                 self.set_channel(1)
             if message == 'C-':

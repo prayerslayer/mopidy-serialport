@@ -27,6 +27,9 @@ class Extension(ext.Extension):
         schema['port'] = config.String()
         schema['baud'] = config.Integer()
         schema['channels'] = config.List()
+        schema['min_volume'] = config.Integer()
+        schema['max_volume'] = config.Integer()
+        schema['volume_step'] = config.Integer()
         return schema
 
     def setup(self, registry):
