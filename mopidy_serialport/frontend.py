@@ -15,8 +15,8 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.config = config['serialport']
         self.core = core
         self.make_noise = self.config['enable_noise']
-        pygame.init()
-        self.noise = pygame.mixer.Sound(os.path.join(os.path.dirname(__file__), 'noise.wav'))
+        pygame.mixer.init(frequency=22050, size=8)
+        self.noise = pygame.mixer.Sound(os.path.join(os.path.dirname(__file__), 'noise2.wav'))
         self.running = False
         self.channels = self.config['channels']
 
