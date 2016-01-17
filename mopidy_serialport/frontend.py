@@ -70,10 +70,9 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
                 channel_uri = self.channels[channel]
                 logger.info('[serialport] Switching to channel: ' + channel_uri)
 
-                tracks = flatten(map(lambda ref: self.core.library.lookup(ref.uri).get(), self.core.library.browse(channel_uri).get()))
-                self.core.tracklist.add(tracks=tracks, at_position=0).get()
-                tracklist = self.core.tracklist.get_tl_tracks().get()
-                self.core.playback.play(tl_track=tracklist[0])
+                refs = self.core.library.browse(channel_uri).get()
+                tl_tracks = self.core.tracklist.add(uris=[ref.uri for ref in refs]).get()
+                self.core.playback.play(tl_track=tl_tracks[0])
                 self.channel = channel
         except BaseException as e:
             logger.error('Failed to set channel to ' + str(channel))
