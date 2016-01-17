@@ -13,7 +13,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         super(SerialPortFrontend, self).__init__()
         self.config = config['serialport']
         self.core = core
-        self.make_noise = self.config['noise_enabled']
+        self.make_noise = self.config['enable_noise']
         self.pygame = pygame
         self.running = False
         self.channels = self.config['channels']
