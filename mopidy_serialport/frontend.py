@@ -68,12 +68,19 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
             self.core.playback.stop()
             if self.make_noise:
                 self.pygame.mixer.music.load(os.path.join(os.path.dirname(__file__), 'noise.mp3'))
-                self.pygame.mixer.music.play(-1)    
+                self.pygame.mixer.music.set_volume(0)
+                self.pygame.mixer.music.play(loops=-1)
+                # we have to do the fucking fade-in ourselves
+                for i in range(10):
+                    self.pygame.mider.music.set_volume((i+1) * 10)
+                    sleep(0.1)
+
             refs = self.core.library.browse(channel_uri).get()
             tl_tracks = self.core.tracklist.add(at_position=0, uris=[ref.uri for ref in refs]).get()
             self.core.playback.play(tl_track=tl_tracks[0]).get()
             if self.make_noise:
-                self.pygame.mixer.music.stop()
+                sleep(4)
+                self.pygame.mixer.music.fadeout(2000)
 
         except Exception as e:
             logger.error('Failed to set channel to %s: %s', channel, e)
