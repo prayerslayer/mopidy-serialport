@@ -6,8 +6,11 @@ from mopidy import core
 logger = logging.getLogger(__name__)
 
 MAX_VOLUME = 100
-VOLUME_STEP = 5
+VOLUME_STEP = 2
 MIN_VOLUME = 0
+
+def flatten(listOfLists):
+    return reduce(list.__add__, listOfLists)
 
 class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
     
@@ -16,7 +19,10 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.config = config['serialport']
         self.core = core
         self.running = False
-        self.volume = core.mixer.get_volume()
+        self.volume = core.mixer.get_volume().get()
+	if self.volume == None:
+            self.volume = 100
+            core.mixer.set_volume(self.volume)
         self.channel = 0
         self.channels = self.config['channels']
         logger.info('Available channels:')
@@ -26,6 +32,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
     def on_start(self):
         logger.info('[serialport] on start')
         self.connect()
+        self.set_channel(1)
         self.loop()
 
     def on_stop(self):
@@ -45,15 +52,16 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.arduino.close()
         self.running = False
 
-    def set_volume(self, volume):
+    def set_volume(self, step):
         # normalize
-        if volume > 0:
-            volume = max(volume, MAX_VOLUME)
-        if volume < 0:
-            volume = min(volume, MIN_VOLUME)
+        volume = self.volume + step
+        if step > 0:
+            volume = min(volume, MAX_VOLUME)
+        if step < 0:
+            volume = max(volume, MIN_VOLUME)
         try:
             if volume != self.volume:
-                logger.debug('[serialport] Setting volume to ' + str(volume))
+                logger.info('[serialport] Setting volume to ' + str(volume))
                 self.core.mixer.set_volume(volume)
                 self.volume = volume
         except:
@@ -65,22 +73,21 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         try:
             if channel != self.channel:
                 # get channel uri from config
-                channel_uri = self.config['channels'][channel]
-                logger.info('[serialport] Channel URI: ' + channel_uri)
-                # stop playback, clear tracklist, load new tracks, play
-                self.core.playback.stop()
-                logger.info('[serialport] stopped playback')
-                self.core.tracklist.clear()
-                logger.info('[serialport] cleared tracklist')
-                self.core.tracklist.add(uris=[channel_uri])
-                logger.info('[serialport] added tracks from channel')
-                self.core.playback.play()
+                channel_uri = self.channels[channel]
+                logger.info('[serialport] Switching to channel: ' + channel_uri)
+
+                tracks = flatten(map(lambda ref: self.core.library.lookup(ref.uri).get(), self.core.library.browse(channel_uri).get()))
+                self.core.tracklist.add(tracks=tracks, at_position=0).get()
+                tracklist = self.core.tracklist.get_tl_tracks().get()
+                self.core.playback.play(tl_track=tracklist[0])
                 self.channel = channel
-        except:
+        except BaseException as e:
             logger.error('Failed to set channel to ' + str(channel))
+            logger.error(e)
             pass
 
     def handle_message(self, message):
+        logger.info('[serialport] incoming message "' + message + '"')
         try:
             if message == 'V+' and self.volume < MAX_VOLUME:
                 self.set_volume(VOLUME_STEP)
