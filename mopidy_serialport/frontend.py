@@ -32,11 +32,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         try:
             self.arduino = serial.Serial(
                 port=self.config['port'],
-                baudrate=self.config['baud'],
-                timeout=1,
-                parity=serial.PARITY_NONE,
-                stopbits=serial.STOPBITS_TWO,
-                bytesize=serial.EIGHTBITS
+                baudrate=self.config['baud']
             )
             # signal we're ready
             sleep(1)
