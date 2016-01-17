@@ -30,6 +30,7 @@ class Extension(ext.Extension):
         schema['min_volume'] = config.Integer()
         schema['max_volume'] = config.Integer()
         schema['volume_step'] = config.Integer()
+        schema['enable_noise'] = config.Boolean()
         return schema
 
     def setup(self, registry):
