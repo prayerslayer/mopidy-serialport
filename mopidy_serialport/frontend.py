@@ -1,6 +1,7 @@
 import pykka
 import serial
 import logging
+import pygame
 from mopidy import core
 
 logger = logging.getLogger(__name__)
@@ -11,11 +12,13 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         super(SerialPortFrontend, self).__init__()
         self.config = config['serialport']
         self.core = core
+        self.pygame = pygame
         self.running = False
         self.channels = self.config['channels']
 
     def on_start(self):
         self.connect()
+        self.pygame.init()
         self.set_channel(0)
         self.loop()
 
@@ -55,9 +58,14 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
             channel_uri = self.channels[channel]
             logger.info('[serialport] Switching to channel: ' + channel_uri)
 
+            self.core.playback.stop()
+            self.pygame.mixer.music.load(os.path.join(os.path.dirname(__file__), 'noise.mp3'))
+            self.pygame.mixer.music.play(-1)    
             refs = self.core.library.browse(channel_uri).get()
             tl_tracks = self.core.tracklist.add(at_position=0, uris=[ref.uri for ref in refs]).get()
-            self.core.playback.play(tl_track=tl_tracks[0])
+            self.core.playback.play(tl_track=tl_tracks[0]).get()
+            self.pygame.mixer.music.stop()
+
         except BaseException as e:
             logger.error('Failed to set channel to ' + str(channel))
             logger.error(e)

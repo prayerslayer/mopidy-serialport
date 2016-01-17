@@ -6,3 +6,5 @@
 MANIFEST
 build/
 dist/
+
+mopidy_serialport/noise.wav
