@@ -9,9 +9,6 @@ MAX_VOLUME = 100
 VOLUME_STEP = 2
 MIN_VOLUME = 0
 
-def flatten(listOfLists):
-    return reduce(list.__add__, listOfLists)
-
 class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
     
     def __init__(self, config, core):
