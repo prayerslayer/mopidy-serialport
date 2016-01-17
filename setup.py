@@ -27,7 +27,7 @@ setup(
         'setuptools',
         'Mopidy >= 1.0',
         'Pykka >= 1.1',
-        'pyserial >= 3.0.1',
+        'pyserial >= 2.0.6',
     ],
     entry_points={
         'mopidy.ext': [
