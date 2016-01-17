@@ -2,6 +2,7 @@ import pykka
 import serial
 import logging
 from mopidy import core
+from multiprocessing import Process
 
 logger = logging.getLogger(__name__)
 
@@ -15,6 +16,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         super(SerialPortFrontend, self).__init__()
         self.config = config['serialport']
         self.core = core
+        self.subprocess = None
         self.running = False
         self.channel = 0
         self.channels = self.config['channels']
@@ -25,11 +27,12 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
     def on_start(self):
         logger.info('[serialport] on start')
         self.connect()
-        self.set_channel(1)
-        self.loop()
+        self.set_channel(-1)
+        self.subprocess = Process(target=self.loop, args=(self,))
+        self.subprocess.start()
 
     def on_stop(self):
-	logger.info('[serialport] on stop')
+        logger.info('[serialport] on stop')
         self.disconnect()
 
     def connect(self):
@@ -42,6 +45,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
             logger.error('[serialport] Could not connect to serial port ' + self.config['port'])
 
     def disconnect(self):
+        self.subprocess.terminate()
         self.arduino.close()
         self.running = False
 
