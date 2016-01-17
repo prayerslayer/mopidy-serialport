@@ -1,4 +1,5 @@
 import serial
+from time import sleep
 
 arduino = serial.Serial(
     port='/dev/cu.usbmodem1421',
@@ -9,5 +10,6 @@ arduino = serial.Serial(
 
 while True:
     arduino.write('OK\n\r')
+    sleep(1)
     line = arduino.readline()
     print str(len(line)) + ': ' + line
