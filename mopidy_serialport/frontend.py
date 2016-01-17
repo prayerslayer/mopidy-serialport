@@ -19,10 +19,6 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
         self.config = config['serialport']
         self.core = core
         self.running = False
-        self.volume = core.mixer.get_volume().get()
-	if self.volume == None:
-            self.volume = 100
-            core.mixer.set_volume(self.volume)
         self.channel = 0
         self.channels = self.config['channels']
         logger.info('Available channels:')
@@ -54,16 +50,14 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
 
     def set_volume(self, step):
         # normalize
-        volume = self.volume + step
+        volume = self.core.mixer.get_volume().get() + step
         if step > 0:
             volume = min(volume, MAX_VOLUME)
         if step < 0:
             volume = max(volume, MIN_VOLUME)
         try:
-            if volume != self.volume:
-                logger.info('[serialport] Setting volume to ' + str(volume))
-                self.core.mixer.set_volume(volume)
-                self.volume = volume
+            logger.info('[serialport] Setting volume to ' + str(volume))
+            self.core.mixer.set_volume(volume)
         except:
             logger.error('[serialport] Failed to set volume to ' + str(volume))
             pass
@@ -89,9 +83,9 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
     def handle_message(self, message):
         logger.info('[serialport] incoming message "' + message + '"')
         try:
-            if message == 'V+' and self.volume < MAX_VOLUME:
+            if message == 'V+':
                 self.set_volume(VOLUME_STEP)
-            if message == 'V-' and self.volume > MIN_VOLUME:
+            if message == 'V-':
                 self.set_volume(VOLUME_STEP * -1)
             if message == 'C+':
                 self.set_channel(1)
