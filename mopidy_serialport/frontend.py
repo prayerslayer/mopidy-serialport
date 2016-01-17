@@ -64,7 +64,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
                 logger.info('[serialport] Switching to channel: ' + channel_uri)
 
                 refs = self.core.library.browse(channel_uri).get()
-                tl_tracks = self.core.tracklist.add(uris=[ref.uri for ref in refs]).get()
+                tl_tracks = self.core.tracklist.add(at_position=0, uris=[ref.uri for ref in refs]).get()
                 self.core.playback.play(tl_track=tl_tracks[0])
                 self.channel = channel
         except BaseException as e:
