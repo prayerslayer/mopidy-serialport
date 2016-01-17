@@ -72,7 +72,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
                 self.pygame.mixer.music.play(loops=-1)
                 # we have to do the fucking fade-in ourselves
                 for i in range(10):
-                    self.pygame.mixer.music.set_volume((i+1) * 10)
+                    self.pygame.mixer.music.set_volume((i+1)/10)
                     sleep(0.1)
 
             refs = self.core.library.browse(channel_uri).get()
