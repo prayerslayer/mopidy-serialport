@@ -32,6 +32,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
             self.arduino = serial.Serial(self.config['port'], self.config['baud'], timeout=1)
             # signal we're ready
             self.arduino.write('OK\n\r')
+            self.arduino.flush()
             self.running = True
         except:
             logger.error('[serialport] Could not connect to serial port ' + self.config['port'])
