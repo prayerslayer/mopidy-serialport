@@ -35,7 +35,7 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
                 baudrate=self.config['baud']
             )
             # signal we're ready
-            sleep(1)
+            sleep(3)
             self.arduino.write('OK\n\r')
             self.running = True
         except:
