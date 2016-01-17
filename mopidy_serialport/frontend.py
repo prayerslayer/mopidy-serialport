@@ -3,6 +3,7 @@ import serial
 import logging
 import pygame
 import os
+from time import sleep
 from mopidy import core
 
 logger = logging.getLogger(__name__)
@@ -38,8 +39,8 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
                 bytesize=serial.EIGHTBITS
             )
             # signal we're ready
+            sleep(1)
             self.arduino.write('OK\n\r')
-            self.arduino.flush()
             self.running = True
         except:
             logger.error('[serialport] Could not connect to serial port ' + self.config['port'])
