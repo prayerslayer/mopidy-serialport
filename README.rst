@@ -39,7 +39,19 @@ Before starting Mopidy, you must add configuration for
 Mopidy-SerialPort to your Mopidy configuration file::
 
     [serialport]
-    # TODO: Add example of extension config
+    enabled = true      # self-explanatory
+    port = /dev/ttyACM0 # port to pass to pyserial for communication
+    baud = 9600         # baud rate to pass to pyserial
+    min_volume = 0
+    max_volume = 100
+    volume_step = 2
+    enable_noise = true # whether or not to play some fm noise between channel switching
+    # channels are newline separated
+    # channels are activated via the "Cn" command
+    # channels must be URIs
+    channels = soundcloud:directory:explore/0
+               soundcloud:directory:explore/5
+
 
 Signals
 =======
