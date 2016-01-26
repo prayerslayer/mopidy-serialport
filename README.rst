@@ -41,6 +41,15 @@ Mopidy-SerialPort to your Mopidy configuration file::
     [serialport]
     # TODO: Add example of extension config
 
+Signals
+=======
+
+- ``V+``: Volume up 1 step, but not more than ``max_volume``
+- ``V-``: Volume down 1 step, but not less than ``min_volume``
+- ``Cn``: Set channel to ``n`` (``n`` is a number >= 0)
+- ``P1``: Pause playback
+- ``P0``: Resume playback
+
 
 Project resources
 =================
