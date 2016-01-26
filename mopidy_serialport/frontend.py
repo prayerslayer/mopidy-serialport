@@ -9,7 +9,7 @@ from mopidy import core
 logger = logging.getLogger(__name__)
 
 class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
-    
+
     def __init__(self, config, core):
         super(SerialPortFrontend, self).__init__()
         self.config = config['serialport']
@@ -44,6 +44,12 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
     def disconnect(self):
         self.arduino.close()
         self.running = False
+
+    def set_pause(self, on):
+        if on:
+            self.core.playback.pause()
+        else:
+            self.core.playback.resume()
 
     def set_volume(self, step):
         # normalize
@@ -90,6 +96,8 @@ class SerialPortFrontend(pykka.ThreadingActor, core.CoreListener):
                 self.set_volume(volume_step * -1)
             if message[0] == 'C':
                 self.set_channel(int(message[1:]))
+            if message[0] == 'P':
+                self.set_pause(message[1] == '1')
         except BaseException as e:
             logger.error('[serialport] Could not handle serial message "%s": %s', message, e)
             pass
