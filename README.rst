@@ -44,6 +44,8 @@ Mopidy-SerialPort to your Mopidy configuration file::
 Signals
 =======
 
+This extension writes ``OK`` once on startup. All communication (read and write) is expected to end with CRLF (\\r\\n).
+
 - ``V+``: Volume up 1 step, but not more than ``max_volume``
 - ``V-``: Volume down 1 step, but not less than ``min_volume``
 - ``Cn``: Set channel to ``n`` (``n`` is a number >= 0)
